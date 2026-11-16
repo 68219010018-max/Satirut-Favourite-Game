@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมที่ชอบ - Spore</title>
+    <!-- แก้ไขลิงก์ Google Fonts ให้โหลดฟอนต์ Prompt ได้ถูกต้อง -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        /* พื้นหลังธีมอวกาศและหมู่ดาว */
+        body {
+            background-color: #090a0f;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 4px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 4px),
+                radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            background-size: 550px 550px, 350px 350px, 250px 250px, 100% 100%;
+            background-position: 0 0, 40px 60px, 130px 270px, 0 0;
+            background-attachment: fixed;
+            color: #e2e8f0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ส่วนหัวเว็บ (Header) สไตล์อวกาศ */
+        header {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.7) 100%);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+            color: white;
+            text-align: center;
+            padding: 3rem 1rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #38bdf8;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+        }
+
+        header p {
+            max-width: 800px;
+            margin: 0 auto;
+            color: #cbd5e1;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* ปุ่มกรองหมวดหมู่ */
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 2.5rem;
+        }
+
+        .filter-btn {
+            background-color: rgba(15, 23, 42, 0.8);
+            color: #38bdf8;
+            border: 1px solid #38bdf8;
+            padding: 8px 22px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.1);
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background-color: #38bdf8;
+            color: #090a0f;
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+        }
+
+        /* การจัดเรียงการ์ดด้วย CSS Grid & Responsive */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        /* การ์ดข้อมูลแบบโปร่งแสง (Glassmorphism) */
+        .card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(56, 189, 248, 0.6);
+            box-shadow: 0 12px 28px rgba(56, 189, 248, 0.25);
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #1e293b;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-content {
+            padding: 1.4rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: rgba(56, 189, 248, 0.15);
+            color: #7dd3fc;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .card-content h3 {
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-size: 1.25rem;
+        }
+
+        .card-content p {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>เกมที่ชอบ</h1>
+        <p>Spore เป็นวิดีโอเกมแนวจำลองสถานการณ์และสร้างโลก (God Game) ที่เปิดโอกาสให้ผู้เล่นสร้างและควบคุมวิวัฒนาการของสิ่งมีชีวิตตั้งแต่ระดับเซลล์เดียวไปจนถึงการสร้างอารยธรรมและออกสำรวจอวกาศ</p>
+    </header>
+
+    <div class="container">
+        <!-- ปุ่มกรองหมวดหมู่ -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">ทั้งหมด</button>
+            <button class="filter-btn" data-filter="cat1">ยุคเริ่มต้นวิวัฒนาการ</button>
+            <button class="filter-btn" data-filter="cat2">ยุคสังคมและอารยธรรม</button>
+            <button class="filter-btn" data-filter="cat3">อวกาศและระบบเสริม</button>
+        </div>
+
+        <!-- การ์ดข้อมูล/รูปภาพ -->
+        <div class="gallery-grid">
+            <!-- การ์ดที่ 1 -->
+            <div class="card" data-category="cat1">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4jnzbf8IYtkZZ8ExCKLy-puZg3smD9rgkB5yb0ekBO6OXWPoUbGwfy4_y&s=10" alt="ยุคจุลชีพ">
+                <div class="card-content">
+                    <span class="badge">ยุคเริ่มต้นวิวัฒนาการ</span>
+                    <h3>ยุคจุลชีพ</h3>
+                    <p>เริ่มต้นชีวิตเป็นสิ่งมีชีวิตเซลล์เดียวใต้ท้องทะเลลึก ออกว่ายน้ำหาอาหาร หลบหลีกศัตรูตัวใหญ่ และสะสมแต้ม DNA เพื่อปลดล็อกชิ้นส่วนใหม่ๆ มาใช้พัฒนาตัวเองให้แข็งแกร่งขึ้น</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 2 -->
+            <div class="card" data-category="cat2">
+                <img src="https://ideonexus.com/wp-content/uploads/2008/09/02screenshot-creature02.jpg" alt="ยุคสิ่งมีชีวิตบนบก">
+                <div class="card-content">
+                    <span class="badge">ยุคสังคมและอารยธรรม</span>
+                    <h3>ยุคสิ่งมีชีวิตบนบก</h3>
+                    <p>วิวัฒนาการขาเพื่อก้าวขึ้นสู่ผืนดิน ออกสำรวจโลกกว้างและตามหาชิ้นส่วนโครงกระดูก สามารถเลือกผูกมิตรด้วยการเต้นรำร้องเพลง หรือต่อสู้กับสายพันธุ์อื่นเพื่อยึดครองพื้นที่</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 3 -->
+            <div class="card" data-category="cat3">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFaZfEb6VPD68jV6aGf2Izt-U48AJoLp_CJOQrLqgP3Q&s=10" alt="ระบบสร้างตัวละคร">
+                <div class="card-content">
+                    <span class="badge">อวกาศและระบบเสริม</span>
+                    <h3>ระบบสร้างตัวละคร</h3>
+                    <p>ระบบเด่นที่ให้ผู้เล่นดัดแปลงโครงสร้างร่างกายและติดอวัยวะต่างๆ ได้อย่างอิสระ พร้อมลงสีและลวดลายผิวหนังตามจินตนาการ โดยทุกชิ้นส่วนจะส่งผลต่อค่าพลังและความสามารถจริงในเกม</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 4 -->
+            <div class="card" data-category="cat1">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1nRnm8_WArXk5OjnEn3djd8fAYqOuYWMnbfqnT95_ww&s=10" alt="ยุคสร้างเผ่า">
+                <div class="card-content">
+                    <span class="badge">ยุคเริ่มต้นวิวัฒนาการ</span>
+                    <h3>ยุคสร้างเผ่า</h3>
+                    <p>• เปลี่ยนจากการคุมตัวเดียวมาเป็นการบริหารชนเผ่า วางแผนหาเสบียงอาหาร สร้างกระท่อมและอาวุธ เลือกใช้เครื่องดนตรีเพื่อสร้างพันธมิตร หรือทำสงครามพิชิตเผ่าอื่นบนเกาะ</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 5 -->
+            <div class="card" data-category="cat2">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTfBVTdKfhceIl8a-CAg0TUeVsvtpFBq6YJZy_LXgRMchs8o65_LkOFuYG&s=10" alt="ยุคอารยธรรม">
+                <div class="card-content">
+                    <span class="badge">ยุคสังคมและอารยธรรม</span>
+                    <h3>ยุคอารยธรรม</h3>
+                    <p>ก้าวสู่สังคมเมืองเต็มรูปแบบ ผู้เล่นจะได้ออกแบบสิ่งปลูกสร้างและยานพาหนะทั้งทางบก น้ำ อากาศ เพื่อออกยึดครองทรัพยากรและรวบรวมเมืองทั้งหมดบนดาวให้เป็นหนึ่งเดียว</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 6 -->
+            <div class="card" data-category="cat3">
+                <img src="https://media.moddb.com/images/games/1/1/236/spore_space.jpg" alt="ยุคท่องอวกาศ">
+                <div class="card-content">
+                    <span class="badge">อวกาศและระบบเสริม</span>
+                    <h3>ยุคท่องอวกาศ</h3>
+                    <p>ออกแบบยานอวกาศส่วนตัวแล้วบินทะยานออกสู่นอกโลก สำรวจดาวเคราะห์ดวงใหม่ ปรับปรุงสภาพแวดล้อมให้สิ่งมีชีวิตอาศัยอยู่ได้ และติดต่อค้าขายหรือทำสงครามกับจักรวรรดิต่างดาว</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 7 -->
+            <div class="card" data-category="cat3">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg007Qd7Sx3wM32szOoU-J6w5W_jwv6Ub_pZF3LKOrog&s=10" alt="แผนที่กาแล็กซี">
+                <div class="card-content">
+                    <span class="badge">อวกาศและระบบเสริม</span>
+                    <h3>แผนที่กาแล็กซี</h3>
+                    <p>มุมมองแผนที่ขนาดมหึมาของดาราจักรทั้งหมดในยุคอวกาศ แสดงระบบดาวนับแสนดวง พร้อมหมุดธงบอกตำแหน่งอาณานิคม พันธมิตร และเส้นทางสำรวจมุ่งหน้าสู่ใจกลางกาแล็กซี</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const cards = document.querySelectorAll('.card');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                const filterValue = button.getAttribute('data-filter');
+                
+                cards.forEach(card => {
+                    const cardCategory = card.getAttribute('data-category');
+
+        .filter-btn {
+            background-color: white;
+            color: #2c3e50;
+            border: 2px solid #2c3e50;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background-color: #2c3e50;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* การจัดเรียงการ์ดด้วย CSS Grid & Responsive */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* การ์ดข้อมูล */
+        .card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #ddd;
+        }
+
+        .card-content {
+            padding: 1.2rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: #e8eef3;
+            color: #2c3e50;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-content h3 {
+            margin-bottom: 6px;
+        }
+
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>เกมที่ชอบ</h1>
+        <p>Sporeเป็นวิดีโอเกมแนวจำลองสถานการณ์และสร้างโลก (God Game) ที่เปิดโอกาสให้ผู้เล่นสร้างและควบคุมวิวัฒนาการของสิ่งมีชีวิตตั้งแต่ระดับเซลล์เดียวไปจนถึงการสร้างอารยธรรมและออกสำรวจอวกาศ]</p>
+    </header>
+
+    <div class="container">
+        <!-- ปุ่มกรองหมวดหมู่ (ปุ่มทั้งหมด + อย่างน้อย 3 หมวดหมู่) -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">ทั้งหมด</button>
+            <button class="filter-btn" data-filter="[หมวดหมู่_1]">ยุคเริ่มต้นวิวัฒนาการ</button>
+            <button class="filter-btn" data-filter="[หมวดหมู่_2]">ยุคสังคมและอารยธรรม</button>
+            <button class="filter-btn" data-filter="[หมวดหมู่_3]">อวกาศและระบบเสริม</button>
+        </div>
+
+        <!-- การ์ดข้อมูล/รูปภาพ (อย่างน้อย 6 ชิ้น) -->
+        <div class="gallery-grid">
+            <!-- การ์ดที่ 1 -->
+            <div class="card" data-category="[หมวดหมู่_1]">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4jnzbf8IYtkZZ8ExCKLy-puZg3smD9rgkB5yb0ekBO6OXWPoUbGwfy4_y&s=10" alt="[ชื่อรายการ_1]">
+                <div class="card-content">
+                    <span class="badge">ยุคเริ่มต้นวิวัฒนาการ</span>
+                    <h3> ยุคจุลชีพ</h3>
+                    <p>ควบคุมสิ่งมีชีวิตเซลล์เดียวในน้ำ ออกหาอาหาร หลบหลีกศัตรู และสะสมแต้ม DNA เพื่อวิวัฒนาการ</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 2 -->
+            <div class="card" data-category="[หมวดหมู่_2]">
+                <img src="https://ideonexus.com/wp-content/uploads/2008/09/02screenshot-creature02.jpg" alt="[ชื่อรายการ_2]">
+                <div class="card-content">
+                    <span class="badge">ยุคสังคมและอารยธรรม</span>
+                    <h3> ยุคสิ่งมีชีวิตบนบก</h3>
+                    <p>• พัฒนาขาเพื่อขึ้นสู่พื้นดิน ออกสำรวจโลกกว้าง เลือกผูกมิตรหรือต่อสู้กับสิ่งมีชีวิตสายพันธุ์อื่น</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 3 -->
+            <div class="card" data-category="[หมวดหมู่_3]">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFaZfEb6VPD68jV6aGf2Izt-U48AJoLp_CJOQrLqgP3Q&s=10" alt="[ชื่อรายการ_3]">
+                <div class="card-content">
+                    <span class="badge">อวกาศและระบบเสริม</span>
+                    <h3>ระบบสร้างตัวละคร</h3>
+                    <p>ปรับแต่งรูปร่างหน้าตา สีสัน และอวัยวะของสิ่งมีชีวิตได้อย่างอิสระตามจินตนาการ</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 4 -->
+            <div class="card" data-category="[หมวดหมู่_1]">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1nRnm8_WArXk5OjnEn3djd8fAYqOuYWMnbfqnT95_ww&s=10" alt="[ชื่อรายการ_4]">
+                <div class="card-content">
+                    <span class="badge">ยุคเริ่มต้นวิวัฒนาการ</span>
+                    <h3> ยุคสร้างเผ่า</h3>
+                    <p>รวบรวมสมาชิกตั้งถิ่นฐาน บริหารจัดการเสบียงอาหาร และสร้างพันธมิตรหรือทำสงครามกับเผ่าอื่น</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 5 -->
+            <div class="card" data-category="[หมวดหมู่_2]">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTfBVTdKfhceIl8a-CAg0TUeVsvtpFBq6YJZy_LXgRMchs8o65_LkOFuYG&s=10" alt="[ชื่อรายการ_5]">
+                <div class="card-content">
+                    <span class="badge">ยุคสังคมและอารยธรรม</span>
+                    <h3> ยุคอารยธรรม</h3>
+                    <p>ขยายอาณาเขตสู่ระดับเมือง ออกแบบสิ่งปลูกสร้างและยานพาหนะ เพื่อรวบรวมโลกเป็นหนึ่งเดียว</p>
+                </div>
+            </div>
+
+            <!-- การ์ดที่ 6 -->
+            <div class="card" data-category="[หมวดหมู่_3]">
+                <img src="https://media.moddb.com/images/games/1/1/236/spore_space.jpg" alt="[ชื่อรายการ_6]">
+                <div class="card-content">
+                    <span class="badge">อวกาศและระบบเสริม</span>
+                    <h3> ยุคท่องอวกาศ</h3>
+                    <p>สร้างยานอวกาศออกเดินทางสู่นอกโลก สำรวจดาวเคราะห์ดวงใหม่ และติดต่อกับอารยธรรมต่างดาว</p>
+                </div>
+            </div>
+           <!-- การ์ดที่ 7 -->
+            <div class="card" data-category="[หมวดหมู่_1]">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg007Qd7Sx3wM32szOoU-J6w5W_jwv6Ub_pZF3LKOrog&s=10" alt="[ชื่อรายการ_7]">
+                <div class="card-content">
+                    <span class="badge">ยุคเริ่มต้นวิวัฒนาการ</span>
+                    <h3>แผนที่กาแล็กซี</h3>
+                    <p>แสดงภาพรวมของกาแล็กซีทั้งหมดในยุคอวกาศ พร้อมหมุดธงแสดงตำแหน่งระบบดาวและอาณานิคมจำนวนมหาศาลที่ผู้เล่นได้เข้าไปสำรวจและครอบครองไว้</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const cards = document.querySelectorAll('.card');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                const filterValue = button.getAttribute('data-filter');
+
+                cards.forEach(card => {
+                    const cardCategory = card.getAttribute('data-category');
+                    if (filterValue === 'all' || filterValue === cardCategory) {
+                        card.classList.remove('hide');
+                    } else {
+                        card.classList.add('hide');
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
